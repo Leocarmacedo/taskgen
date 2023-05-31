@@ -5,6 +5,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -21,15 +23,20 @@ public class User {
 	private String password;
 	private Integer idProfile;
 
+	@ManyToOne
+	@JoinColumn(name = "department_id")
+	private Department department;
+
 	public User() {
 	}
 
-	public User(Long id, String name, String email, String password, Integer idProfile) {
+	public User(Long id, String name, String email, String password, Integer idProfile, Department department) {
 		this.id = id;
 		this.name = name;
 		this.email = email;
 		this.password = password;
 		this.idProfile = idProfile;
+		this.department = department;
 	}
 
 	public Long getId() {
@@ -70,6 +77,14 @@ public class User {
 
 	public void setIdProfile(Integer idProfile) {
 		this.idProfile = idProfile;
+	}
+
+	public Department getDepartment() {
+		return department;
+	}
+
+	public void setDepartment(Department department) {
+		this.department = department;
 	}
 
 }

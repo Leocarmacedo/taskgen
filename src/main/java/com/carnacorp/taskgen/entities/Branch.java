@@ -1,9 +1,13 @@
 package com.carnacorp.taskgen.entities;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
 
 @Entity
@@ -14,6 +18,9 @@ public class Branch {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 	private String name;
+
+	@OneToMany(mappedBy = "branch")
+	private Set<Department> departments = new HashSet<>();
 
 	public Branch() {
 	}
@@ -37,6 +44,10 @@ public class Branch {
 
 	public void setName(String name) {
 		this.name = name;
+	}
+
+	public Set<Department> getDepartments() {
+		return departments;
 	}
 
 }

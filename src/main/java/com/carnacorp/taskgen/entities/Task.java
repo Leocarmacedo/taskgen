@@ -8,6 +8,8 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
 
 @Entity
@@ -28,11 +30,15 @@ public class Task {
 	private boolean needAuth;
 	private boolean auth;
 
+	@ManyToOne
+	@JoinColumn(name = "department_id")
+	private Department department;
+
 	public Task() {
 	}
 
 	public Task(Long id, String name, String description, Instant moment, LocalDate deadLine, boolean needAuth,
-			boolean auth) {
+			boolean auth, Department department) {
 		this.id = id;
 		this.name = name;
 		this.description = description;
@@ -40,6 +46,7 @@ public class Task {
 		this.deadLine = deadLine;
 		this.needAuth = needAuth;
 		this.auth = auth;
+		this.department = department;
 	}
 
 	public Long getId() {
@@ -96,6 +103,14 @@ public class Task {
 
 	public void setAuth(boolean auth) {
 		this.auth = auth;
+	}
+
+	public Department getDepartment() {
+		return department;
+	}
+
+	public void setDepartment(Department department) {
+		this.department = department;
 	}
 
 }

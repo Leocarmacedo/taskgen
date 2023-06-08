@@ -22,5 +22,11 @@ public class GptController {
 		content = service.insert(content);
 		return ResponseEntity.ok(content);
 	}
+	
+	@PostMapping(value = "/trello")
+	public ResponseEntity<String> test2(@RequestBody String content) throws UnirestException {
+		content = service.insert2(content);
+		return ResponseEntity.ok(content);
+	}
 
 }

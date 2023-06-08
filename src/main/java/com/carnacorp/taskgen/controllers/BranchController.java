@@ -15,18 +15,16 @@ import com.carnacorp.taskgen.services.BranchService;
 @RestController
 @RequestMapping(value = "/branch")
 public class BranchController {
-	
-	
+
 	@Autowired
 	private BranchService service;
-	
-	
+
 	@GetMapping(value = "/{id}")
 	public ResponseEntity<BranchDTO> findById(@PathVariable Long id) {
-		BranchDTO dto =  service.findById(id);
+		BranchDTO dto = service.findById(id);
 		return ResponseEntity.ok(dto);
 	}
-	
+
 	@GetMapping
 	public ResponseEntity<Page<BranchDTO>> findAll(Pageable pageable) {
 		Page<BranchDTO> dto = service.findAll(pageable);

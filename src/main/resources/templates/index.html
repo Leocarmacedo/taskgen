@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+	<meta charset="UTF-8">
+	<title>Gerador de demandas</title>
+	<style>
+		.container {
+			display: flex;
+			flex-direction: column;
+			align-items: flex-start;
+			max-width: 500px;
+			margin: 0 auto;
+		}
+
+		#inputText {
+			height: 100px;
+			width: 500px;
+			/* Altura da caixa de texto */
+		}
+
+		#submitButton {
+			margin-top: 10px;
+			/* Espaçamento superior do botão em relação à caixa de texto */
+		}
+
+		.loading {
+			opacity: 0.5;
+			/* Opacidade para esmaecer o botão */
+			pointer-events: none;
+			/* Desabilita eventos do botão */
+		}
+	</style>
+</head>
+
+<body>
+	<div class="container">
+		<h1>Digite a solicitação abaixo:</h1>
+
+		<textarea id="inputText" placeholder="Digite o texto"></textarea>
+		<button id="submitButton" onclick="postData()">Enviar</button>
+	</div>
+
+	<script>
+		function postData() {
+			const inputText = document.getElementById("inputText").value;
+			const submitButton = document.getElementById("submitButton");
+
+			if (!inputText) {
+				submitButton.classList.add("disabled"); // Adiciona a classe para esmaecer o botão quando desativado
+				return; // Se a caixa de texto estiver vazia, não envie a requisição
+			}
+
+			submitButton.classList.add("loading"); // Aplica a classe para esmaecer o botão
+			submitButton.disabled = true; // Desabilita o botão durante a requisição
+
+
+			fetch('/gpt/trello', {
+				method: 'POST',
+				headers: {
+					'Content-Type': 'text/plain'
+				},
+				body: inputText
+			})
+				.then(response => response.text())
+				.then(result => {
+					console.log(result); // Faça o que quiser com o resultado retornado pelo backend
+
+					submitButton.classList.remove("loading"); // Remove a classe para restaurar a aparência normal do botão
+					submitButton.disabled = false; // Habilita novamente o botão
+					submitButton.classList.remove("disabled"); // Remove a classe para restaurar a aparência normal do botão quando ativado
+
+
+					document.getElementById("inputText").value = ""; // Limpa a caixa de texto
+
+					alert("Demanda criada com sucesso!"); // Exibe uma mensagem de sucesso como pop-up
+				})
+				.catch(error => {
+					console.error('Ocorreu um erro:', error);
+
+					submitButton.classList.remove("loading"); // Remove a classe mesmo em caso de erro
+					submitButton.disabled = false; // Habilita novamente o botão
+					submitButton.classList.remove("disabled"); // Remove a classe para restaurar a aparência normal do botão quando ativado
+
+				});
+		}
+	</script>
+</body>
+
+</html>

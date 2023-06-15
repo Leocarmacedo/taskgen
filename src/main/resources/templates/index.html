@@ -50,6 +50,11 @@
 				submitButton.classList.add("disabled"); // Adiciona a classe para esmaecer o botão quando desativado
 				return; // Se a caixa de texto estiver vazia, não envie a requisição
 			}
+			
+			if (inputText.length < 150) {
+                alert("Mensagem muito curta. O texto deve conter pelo menos 150 caracteres."); // Exibe uma mensagem de erro como pop-up
+                return; // Se o texto for muito curto, não envie a requisição
+            }
 
 			submitButton.classList.add("loading"); // Aplica a classe para esmaecer o botão
 			submitButton.disabled = true; // Desabilita o botão durante a requisição
@@ -73,7 +78,7 @@
 
 					document.getElementById("inputText").value = ""; // Limpa a caixa de texto
 
-					alert("Demanda criada com sucesso!"); // Exibe uma mensagem de sucesso como pop-up
+					alert(result); // Exibe uma mensagem de sucesso como pop-up
 				})
 				.catch(error => {
 					console.error('Ocorreu um erro:', error);

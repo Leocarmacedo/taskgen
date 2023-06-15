@@ -15,6 +15,8 @@ import com.mashape.unirest.http.exceptions.UnirestException;
 public class GptService {
 
 	public String createTask(String content) throws UnirestException {
+		
+		String trimmedContent = content.replace("\n", " ").replace("\r", " ");
 
 		LocalDate hoje = LocalDate.now();
 
@@ -22,9 +24,9 @@ public class GptService {
 		HttpResponse<JsonNode> response = Unirest.post("https://api.openai.com/v1/chat/completions")
 				.header("Content-Type", "application/json")
 				.header("Authorization", "Bearer [gpt-key]")
-				.body("{\r\n  \"model\": \"gpt-3.5-turbo\",\r\n  \"temperature\": 0,\r\n  \"messages\": [\r\n        {\"role\": \"system\", \"content\": \"Você é um assistente de resumo de solicitações. Você receberá uma solicitação e precisará responder APENAS com um objeto json dessa forma: name: [Texto] desc: [Texto da solicitação reescrita com correções gramaticais e de concordância] due: [Data no formato yyyy-MM-dd]. Lembrando que due é a data de vencimento e caso não tenha sido informada, preencher com 'nao informado'. Considere que hoje é dia "
+				.body("{\r\n  \"model\": \"gpt-3.5-turbo\",\r\n  \"temperature\": 0,\r\n  \"messages\": [\r\n        {\"role\": \"system\", \"content\": \"Você é um assistente de resumo de solicitações. Você receberá uma solicitação e precisará responder APENAS com um objeto json dessa forma: name: [Texto] desc: [Texto da solicitação reescrita com correções gramaticais e de concordância.] due: [Data no formato yyyy-MM-dd]. Lembrando que due é a data de vencimento e caso não tenha sido informada, criar o objeto sem a data. Considere que hoje é dia "
 						+ hoje + ". É importante ressaltar que sua resposta irá conter somente o objeto Json.\"},\r\n"
-						+ "{\"role\": \"user\", \"content\": \"" + content + "\"}\r\n    ]\r\n}\r\n")
+						+ "{\"role\": \"user\", \"content\": \"" + trimmedContent + "\"}\r\n    ]\r\n}\r\n")
 				.asJson();
 
 		String systemResponse = null;

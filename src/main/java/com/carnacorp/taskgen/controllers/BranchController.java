@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.carnacorp.taskgen.dto.BranchDTO;
+import com.carnacorp.taskgen.dto.BranchMinDTO;
 import com.carnacorp.taskgen.services.BranchService;
 
 import jakarta.validation.Valid;
@@ -33,8 +35,8 @@ public class BranchController {
 	}
 
 	@GetMapping
-	public ResponseEntity<List<BranchDTO>> findAll() {
-		List<BranchDTO> dto = service.findAll();
+	public ResponseEntity<List<BranchMinDTO>> findAll() {
+		List<BranchMinDTO> dto = service.findAll();
 		return ResponseEntity.ok(dto);
 	}
 
@@ -49,6 +51,12 @@ public class BranchController {
 	public ResponseEntity<BranchDTO> update(@PathVariable Long id, @Valid @RequestBody BranchDTO dto) {
 		dto = service.update(id, dto);
 		return ResponseEntity.ok(dto);
+	}
+
+	@DeleteMapping(value = "/{id}")
+	public ResponseEntity<Void> delete(@PathVariable Long id) {
+		service.delete(id);
+		return ResponseEntity.noContent().build();
 	}
 
 }

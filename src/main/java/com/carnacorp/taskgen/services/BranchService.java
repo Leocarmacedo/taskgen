@@ -1,8 +1,9 @@
 package com.carnacorp.taskgen.services;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,9 +27,17 @@ public class BranchService {
 	}
 
 	@Transactional(readOnly = true)
-	public Page<BranchDTO> findAll(Pageable pageble) {
-		Page<Branch> result = repository.findAll(pageble);
-		return result.map(x -> new BranchDTO(x));
+	public List<BranchDTO> findAll() {
+		List<Branch> result = repository.findAll();
+		return result.stream().map(x -> new BranchDTO(x)).collect(Collectors.toList());
+	}
+
+	@Transactional
+	public BranchDTO insert(BranchDTO dto) {
+		Branch entity = new Branch();
+		entity.setName(dto.getName());
+		entity = repository.save(entity);
+		return new BranchDTO(entity);
 	}
 
 }

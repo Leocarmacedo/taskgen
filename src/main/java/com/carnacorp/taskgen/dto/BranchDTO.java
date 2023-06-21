@@ -2,9 +2,15 @@ package com.carnacorp.taskgen.dto;
 
 import com.carnacorp.taskgen.entities.Branch;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+
 public class BranchDTO {
 
 	private Long id;
+	
+	@Size(min = 3, max = 30, message = "Nome precisa ter de 3 a 30 caracteres")
+	@NotBlank(message = "Campo requerido")
 	private String name;
 
 	public BranchDTO() {

@@ -1,7 +1,5 @@
 package com.carnacorp.taskgen.services;
 
-import java.util.Optional;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -11,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.carnacorp.taskgen.dto.BranchDTO;
 import com.carnacorp.taskgen.entities.Branch;
 import com.carnacorp.taskgen.repositories.BranchRepository;
+import com.carnacorp.taskgen.services.exceptions.ResourceNotFoundException;
 
 @Service
 public class BranchService {
@@ -21,8 +20,9 @@ public class BranchService {
 	@Transactional(readOnly = true)
 	public BranchDTO findById(Long id) {
 
-		Optional<Branch> branch = repository.findById(id);
-		return new BranchDTO(branch.get().getId(), branch.get().getName());
+		Branch branch = repository.findById(id)
+				.orElseThrow(() -> new ResourceNotFoundException("Recurso não encontrado"));
+		return new BranchDTO(branch);
 	}
 
 	@Transactional(readOnly = true)

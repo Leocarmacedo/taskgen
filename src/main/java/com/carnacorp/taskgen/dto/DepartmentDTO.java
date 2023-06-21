@@ -11,21 +11,27 @@ public class DepartmentDTO {
 
 	private Long id;
 	private String name;
+	private Long branchId;
 
 	private List<UserDTO> users = new ArrayList<>();
 
 	private List<TaskDTO> tasks = new ArrayList<>();
 
-	public DepartmentDTO(Long id, String name, List<UserDTO> users, List<TaskDTO> tasks) {
+	public DepartmentDTO() {
+	}
+
+	public DepartmentDTO(Long id, String name, Long branchId, List<UserDTO> users, List<TaskDTO> tasks) {
 		this.id = id;
 		this.name = name;
 		this.users = users;
 		this.tasks = tasks;
+		this.branchId = branchId;
 	}
 
 	public DepartmentDTO(Department entity) {
 		id = entity.getId();
 		name = entity.getName();
+		branchId = entity.getBranch().getId();
 
 		for (User user : entity.getUsers()) {
 			users.add(new UserDTO(user));
@@ -42,6 +48,10 @@ public class DepartmentDTO {
 
 	public String getName() {
 		return name;
+	}
+
+	public Long getBranchId() {
+		return branchId;
 	}
 
 	public List<UserDTO> getUsers() {

@@ -8,9 +8,14 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.carnacorp.taskgen.dto.BranchDTO;
+import com.carnacorp.taskgen.dto.DepartmentDTO;
 import com.carnacorp.taskgen.entities.Branch;
+import com.carnacorp.taskgen.entities.Department;
 import com.carnacorp.taskgen.repositories.BranchRepository;
 import com.carnacorp.taskgen.services.exceptions.ResourceNotFoundException;
+
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.Valid;
 
 @Service
 public class BranchService {
@@ -38,6 +43,26 @@ public class BranchService {
 		entity.setName(dto.getName());
 		entity = repository.save(entity);
 		return new BranchDTO(entity);
+	}
+
+	@Transactional
+	public @Valid BranchDTO update(Long id, @Valid BranchDTO dto) {
+		try {
+			Branch entity = repository.getReferenceById(id);
+			entity.setName(dto.getName());
+
+			entity.getDepartments().clear();
+			for (DepartmentDTO depDto : dto.getDepartments()) {
+				Department dep = new Department();
+				dep.setId(depDto.getId());
+				entity.getDepartments().add(dep);
+			}
+
+			entity = repository.save(entity);
+			return new BranchDTO(entity);
+		} catch (EntityNotFoundException e) {
+			throw new ResourceNotFoundException("Recurso não encontrado");
+		}
 	}
 
 }

@@ -21,7 +21,6 @@ public class User {
 	@Column(unique = true)
 	private String email;
 	private String password;
-	private Integer idProfile;
 
 	@ManyToOne
 	@JoinColumn(name = "department_id")
@@ -30,12 +29,11 @@ public class User {
 	public User() {
 	}
 
-	public User(Long id, String name, String email, String password, Integer idProfile, Department department) {
+	public User(Long id, String name, String email, String password, Department department) {
 		this.id = id;
 		this.name = name;
 		this.email = email;
 		this.password = password;
-		this.idProfile = idProfile;
 		this.department = department;
 	}
 
@@ -69,14 +67,6 @@ public class User {
 
 	public void setPassword(String password) {
 		this.password = password;
-	}
-
-	public Integer getIdProfile() {
-		return idProfile;
-	}
-
-	public void setIdProfile(Integer idProfile) {
-		this.idProfile = idProfile;
 	}
 
 	public Department getDepartment() {

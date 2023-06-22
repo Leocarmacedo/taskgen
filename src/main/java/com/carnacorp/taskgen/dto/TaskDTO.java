@@ -15,6 +15,8 @@ public class TaskDTO {
 	private boolean needAuth;
 	private boolean auth;
 
+	private Long departmentId;
+
 	public TaskDTO() {
 	}
 
@@ -37,6 +39,7 @@ public class TaskDTO {
 		deadLine = entity.getDeadLine();
 		needAuth = entity.isNeedAuth();
 		auth = entity.isAuth();
+		departmentId = entity.getDepartment().getId();
 	}
 
 	public Long getId() {
@@ -65,6 +68,10 @@ public class TaskDTO {
 
 	public boolean isAuth() {
 		return auth;
+	}
+
+	public Long getDepartmentId() {
+		return departmentId;
 	}
 
 }

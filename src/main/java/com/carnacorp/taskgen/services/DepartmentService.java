@@ -37,7 +37,7 @@ public class DepartmentService {
 	public DepartmentDTO findById(Long id) {
 
 		Department department = repository.findById(id)
-				.orElseThrow(() -> new ResourceNotFoundException("Recurso não encontrado"));
+				.orElseThrow(() -> new ResourceNotFoundException("Department not found"));
 		return new DepartmentDTO(department);
 	}
 
@@ -63,14 +63,14 @@ public class DepartmentService {
 			entity = repository.save(entity);
 			return new DepartmentDTO(entity);
 		} catch (EntityNotFoundException e) {
-			throw new ResourceNotFoundException("Recurso não encontrado");
+			throw new ResourceNotFoundException("Department not found");
 		}
 	}
 
 	@Transactional(propagation = Propagation.SUPPORTS)
 	public void delete(Long id) {
 		if (!repository.existsById(id)) {
-			throw new ResourceNotFoundException("Recurso não encontrado");
+			throw new ResourceNotFoundException("Department not found");
 		}
 		try {
 			repository.deleteById(id);
@@ -82,7 +82,7 @@ public class DepartmentService {
 	private void copyDtoToEntity(DepartmentDTO dto, Department entity) {
 
 		Branch branch = branchRepository.findById(dto.getBranchId())
-				.orElseThrow(() -> new ResourceNotFoundException("Recurso não encontrado"));
+				.orElseThrow(() -> new ResourceNotFoundException("Branch not found"));
 		entity.setName(dto.getName());
 		entity.setBranch(branch);
 

@@ -5,13 +5,18 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.carnacorp.taskgen.dto.UserDTO;
 import com.carnacorp.taskgen.entities.Department;
+import com.carnacorp.taskgen.entities.Role;
 import com.carnacorp.taskgen.entities.User;
+import com.carnacorp.taskgen.projections.UserDetailsProjection;
 import com.carnacorp.taskgen.repositories.DepartmentRepository;
 import com.carnacorp.taskgen.repositories.UserRepository;
 import com.carnacorp.taskgen.services.exceptions.DatabaseException;
@@ -21,13 +26,32 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.validation.Valid;
 
 @Service
-public class UserService {
+public class UserService implements UserDetailsService {
 
 	@Autowired
 	private UserRepository repository;
 
 	@Autowired
 	private DepartmentRepository departmentRepository;
+
+	@Override
+	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+
+		List<UserDetailsProjection> result = repository.searchUserAndRolesByEmail(username);
+		if (result.size() == 0) {
+			throw new UsernameNotFoundException("User not found");
+		}
+
+		User user = new User();
+		user.setEmail(username);
+		user.setPassword(result.get(0).getPassword());
+		for (UserDetailsProjection projection : result) {
+			user.addRole(new Role(projection.getRoleId(), projection.getAuthority()));
+		}
+
+		return user;
+
+	}
 
 	@Transactional(readOnly = true)
 	public UserDTO findById(Long id) {
@@ -81,7 +105,7 @@ public class UserService {
 		entity.setName(dto.getName());
 		entity.setEmail(dto.getEmail());
 		entity.setPassword(dto.getPassword());
-		
+
 		entity.setDepartment(department);
 
 	}

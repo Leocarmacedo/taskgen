@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import com.carnacorp.taskgen.dto.UserDTO;
+import com.carnacorp.taskgen.dto.UserMinDTO;
 import com.carnacorp.taskgen.services.UserService;
 
 import jakarta.validation.Valid;
@@ -28,14 +29,14 @@ public class UserController {
 	private UserService service;
 
 	@GetMapping(value = "/{id}")
-	public ResponseEntity<UserDTO> findById(@PathVariable Long id) {
-		UserDTO dto = service.findById(id);
+	public ResponseEntity<UserMinDTO> findById(@PathVariable Long id) {
+		UserMinDTO dto = service.findById(id);
 		return ResponseEntity.ok(dto);
 	}
 
 	@GetMapping
-	public ResponseEntity<List<UserDTO>> findAll() {
-		List<UserDTO> dto = service.findAll();
+	public ResponseEntity<List<UserMinDTO>> findAll() {
+		List<UserMinDTO> dto = service.findAll();
 		return ResponseEntity.ok(dto);
 	}
 

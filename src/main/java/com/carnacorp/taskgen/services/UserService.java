@@ -15,6 +15,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.carnacorp.taskgen.dto.UserDTO;
+import com.carnacorp.taskgen.dto.UserMinDTO;
 import com.carnacorp.taskgen.entities.Department;
 import com.carnacorp.taskgen.entities.Role;
 import com.carnacorp.taskgen.entities.User;
@@ -64,16 +65,16 @@ public class UserService implements UserDetailsService {
 	}
 
 	@Transactional(readOnly = true)
-	public UserDTO findById(Long id) {
+	public UserMinDTO findById(Long id) {
 
 		User user = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Recurso não encontrado"));
-		return new UserDTO(user);
+		return new UserMinDTO(user);
 	}
 
 	@Transactional(readOnly = true)
-	public List<UserDTO> findAll() {
+	public List<UserMinDTO> findAll() {
 		List<User> result = repository.findAll();
-		return result.stream().map(x -> new UserDTO(x)).collect(Collectors.toList());
+		return result.stream().map(x -> new UserMinDTO(x)).collect(Collectors.toList());
 	}
 
 	@Transactional

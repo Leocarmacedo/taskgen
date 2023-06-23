@@ -9,7 +9,7 @@ INSERT INTO tb_department(name, branch_id) VALUES ('Admin', 2);
 INSERT INTO tb_department(name, branch_id) VALUES ('Suporte', 2);
 INSERT INTO tb_department(name, branch_id) VALUES ('Desenvolvimento', 2);
 
-INSERT INTO tb_user(name, email, password, department_id) VALUES ('Maria', 'maria@gmail.com', '$2a$10$oV3BSgD.l1e6jNTmIYxDl.TCifiHfQ7HfCs1E/G.dyISpsKSKEgPu', 1);
+INSERT INTO tb_user(name, email, password, department_id) VALUES ('Maria', 'maria@gmail.com', '$2a$10$W5oqWSmqYYaaBo8oiFCk3eVNarC3.TdAgBvlE0gscQrXZk7dn7hZS', 1);
 
 INSERT INTO tb_user(name, email, password, department_id) VALUES ('Marcos', 'marcos@gmail.com', '$2a$10$oV3BSgD.l1e6jNTmIYxDl.TCifiHfQ7HfCs1E/G.dyISpsKSKEgPu', 4);
 

@@ -1,5 +1,10 @@
 package com.carnacorp.taskgen.dto;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.security.core.GrantedAuthority;
+
 import com.carnacorp.taskgen.entities.User;
 
 public class UserDTO {
@@ -10,6 +15,8 @@ public class UserDTO {
 	private String password;
 
 	private Long departmentId;
+
+	private List<String> roles = new ArrayList<>();
 
 	public UserDTO() {
 	}
@@ -27,6 +34,9 @@ public class UserDTO {
 		email = entity.getEmail();
 		password = entity.getPassword();
 		departmentId = entity.getDepartment().getId();
+		for (GrantedAuthority role : entity.getRoles()) {
+			roles.add(role.getAuthority());
+		}
 	}
 
 	public Long getId() {
@@ -47,6 +57,10 @@ public class UserDTO {
 
 	public Long getDepartmentId() {
 		return departmentId;
+	}
+
+	public List<String> getRoles() {
+		return roles;
 	}
 
 }

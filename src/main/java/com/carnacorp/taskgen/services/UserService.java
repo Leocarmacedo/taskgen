@@ -4,10 +4,12 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +20,7 @@ import com.carnacorp.taskgen.entities.Role;
 import com.carnacorp.taskgen.entities.User;
 import com.carnacorp.taskgen.projections.UserDetailsProjection;
 import com.carnacorp.taskgen.repositories.DepartmentRepository;
+import com.carnacorp.taskgen.repositories.RoleRepository;
 import com.carnacorp.taskgen.repositories.UserRepository;
 import com.carnacorp.taskgen.services.exceptions.DatabaseException;
 import com.carnacorp.taskgen.services.exceptions.ResourceNotFoundException;
@@ -33,6 +36,13 @@ public class UserService implements UserDetailsService {
 
 	@Autowired
 	private DepartmentRepository departmentRepository;
+
+	@Autowired
+	private RoleRepository roleRepository;
+
+	@Lazy
+	@Autowired
+	private PasswordEncoder passwordEncoder;
 
 	@Override
 	public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
@@ -69,7 +79,10 @@ public class UserService implements UserDetailsService {
 	@Transactional
 	public UserDTO insert(UserDTO dto) {
 		User entity = new User();
+		Role role = roleRepository.findById((long) 1)
+				.orElseThrow(() -> new ResourceNotFoundException("Recurso não encontrado"));
 		this.copyDtoToEntity(dto, entity);
+		entity.addRole(role);
 		entity = repository.save(entity);
 		return new UserDTO(entity);
 	}
@@ -104,7 +117,7 @@ public class UserService implements UserDetailsService {
 				.orElseThrow(() -> new ResourceNotFoundException("Department not found"));
 		entity.setName(dto.getName());
 		entity.setEmail(dto.getEmail());
-		entity.setPassword(dto.getPassword());
+		entity.setPassword(passwordEncoder.encode(dto.getPassword()));
 
 		entity.setDepartment(department);
 

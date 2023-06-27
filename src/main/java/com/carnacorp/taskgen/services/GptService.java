@@ -10,9 +10,8 @@ import org.springframework.stereotype.Service;
 
 import com.carnacorp.taskgen.dto.GptDTO;
 import com.carnacorp.taskgen.dto.TaskDTO;
+import com.carnacorp.taskgen.entities.OpenAIAPIClient;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mashape.unirest.http.HttpResponse;
-import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 
@@ -22,39 +21,10 @@ public class GptService {
 	@Autowired
 	private TaskService taskService;
 
-	public String createTask(String content) throws UnirestException {
-
-		String trimmedContent = content.replace("\n", " ").replace("\r", " ");
-
-		LocalDate hoje = LocalDate.now();
+	public void trelloCard(String systemResponse, Long departmentId) throws UnirestException {
 
 		Unirest.setTimeouts(0, 0);
-		HttpResponse<JsonNode> response = Unirest.post("https://api.openai.com/v1/chat/completions")
-				.header("Content-Type", "application/json")
-				.header("Authorization", "Bearer gpt-key")
-				.body("{\r\n  \"model\": \"gpt-3.5-turbo\",\r\n  \"temperature\": 0,\r\n  \"messages\": [\r\n        {\"role\": \"system\", \"content\": \"Você é um assistente de resumo de solicitações. Você receberá uma solicitação e precisará responder APENAS com um objeto json dessa forma: name: [Texto] desc: [Texto da solicitação reescrita com correções gramaticais e de concordância.] due: [Data no formato yyyy-MM-dd]. Lembrando que due é a data de vencimento e caso não tenha sido informada, criar o objeto sem a data. Considere que hoje é dia "
-						+ hoje + ". É importante ressaltar que sua resposta irá conter somente o objeto Json.\"},\r\n"
-						+ "{\"role\": \"user\", \"content\": \"" + trimmedContent + "\"}\r\n    ]\r\n}\r\n")
-				.asJson();
-
-		String systemResponse = null;
-		JSONObject jsonResponse = new JSONObject(response.getBody().toString());
-		JSONArray choices = jsonResponse.getJSONArray("choices");
-		if (choices.length() > 0) {
-			JSONObject firstChoice = choices.getJSONObject(0);
-			JSONObject message = firstChoice.getJSONObject("message");
-			systemResponse = message.getString("content");
-		}
-
-		this.trelloCard(systemResponse);
-
-		return systemResponse;
-	}
-
-	private String trelloCard(String systemResponse) throws UnirestException {
-
-		Unirest.setTimeouts(0, 0);
-		HttpResponse<String> response = Unirest.post(
+		Unirest.post(
 				"https://api.trello.com/1/cards?idList=6467b5a996ce87891671c3ea&key=e8573632ce0d5b3d18ceda38bd6c6cd5&token=ATTA1b28f5c12eed7c8c23806256a95c545526fe85201fd9775cc70eb46ba5463eb106876B33")
 				.header("Accept", "application/json").header("Content-Type", "application/json")
 				.header("Cookie",
@@ -63,6 +33,7 @@ public class GptService {
 
 		ObjectMapper objectMapper = new ObjectMapper();
 
+		TaskDTO taskDto = new TaskDTO();
 		try {
 			// Converter a string JSON em um objeto Java
 			GptDTO dto = objectMapper.readValue(systemResponse, GptDTO.class);
@@ -71,11 +42,10 @@ public class GptService {
 			DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE;
 			LocalDate localDate = LocalDate.parse(dateString, formatter);
 
-			TaskDTO taskDto = new TaskDTO();
 			taskDto.setName(dto.getName());
 			taskDto.setDescription(dto.getDesc());
 			taskDto.setDeadLine(localDate);
-			taskDto.setDepartmentId((long) 1);
+			taskDto.setDepartmentId(departmentId);
 
 			taskService.insert(taskDto);
 
@@ -83,7 +53,21 @@ public class GptService {
 			e.printStackTrace();
 		}
 
-		return response.getBody();
+	}
+
+	public String getSystemResponse(String systemMessage, String userMessage) {
+
+		OpenAIAPIClient openAIAPIClient = new OpenAIAPIClient();
+
+		String systemResponse = null;
+		JSONObject jsonResponse = new JSONObject(openAIAPIClient.callOpenAPI(systemMessage, userMessage));
+		JSONArray choices = jsonResponse.getJSONArray("choices");
+		if (choices.length() > 0) {
+			JSONObject firstChoice = choices.getJSONObject(0);
+			JSONObject message = firstChoice.getJSONObject("message");
+			systemResponse = message.getString("content");
+		}
+		return systemResponse;
 
 	}
 

@@ -6,14 +6,18 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.carnacorp.taskgen.dto.UserCredentialsDTO;
 import com.carnacorp.taskgen.dto.UserDTO;
 import com.carnacorp.taskgen.dto.UserMinDTO;
 import com.carnacorp.taskgen.entities.Department;
@@ -76,6 +80,13 @@ public class UserService implements UserDetailsService {
 		List<User> result = repository.findAll();
 		return result.stream().map(x -> new UserMinDTO(x)).collect(Collectors.toList());
 	}
+	
+	@Transactional(readOnly = true)
+	public List<UserMinDTO> findByDepartment() {
+		User user = this.authenticated();
+		List<User> result = repository.findByDepartmentId(user.getDepartment().getId());
+		return result.stream().map(x -> new UserMinDTO(x)).collect(Collectors.toList());
+	}
 
 	@Transactional
 	public UserDTO insert(UserDTO dto) {
@@ -110,6 +121,24 @@ public class UserService implements UserDetailsService {
 		} catch (DataIntegrityViolationException e) {
 			throw new DatabaseException("Falha de integridade referencial");
 		}
+	}
+
+	protected User authenticated() {
+
+		try {
+			Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+			Jwt jwtPrincipal = (Jwt) authentication.getPrincipal();
+			String username = jwtPrincipal.getClaim("username");
+			return repository.findByEmail(username).get();
+		} catch (Exception e) {
+			throw new UsernameNotFoundException("Email not found");
+		}
+	}
+
+	@Transactional(readOnly = true)
+	public UserCredentialsDTO getMe() {
+		User user = authenticated();
+		return new UserCredentialsDTO(user);
 	}
 
 	private void copyDtoToEntity(UserDTO dto, User entity) {

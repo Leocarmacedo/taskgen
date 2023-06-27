@@ -1,11 +1,16 @@
 package com.carnacorp.taskgen.services;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.carnacorp.taskgen.dto.GptDTO;
+import com.carnacorp.taskgen.dto.TaskDTO;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mashape.unirest.http.HttpResponse;
 import com.mashape.unirest.http.JsonNode;
 import com.mashape.unirest.http.Unirest;
@@ -14,8 +19,11 @@ import com.mashape.unirest.http.exceptions.UnirestException;
 @Service
 public class GptService {
 
+	@Autowired
+	private TaskService taskService;
+
 	public String createTask(String content) throws UnirestException {
-		
+
 		String trimmedContent = content.replace("\n", " ").replace("\r", " ");
 
 		LocalDate hoje = LocalDate.now();
@@ -23,7 +31,7 @@ public class GptService {
 		Unirest.setTimeouts(0, 0);
 		HttpResponse<JsonNode> response = Unirest.post("https://api.openai.com/v1/chat/completions")
 				.header("Content-Type", "application/json")
-				.header("Authorization", "Bearer [gpt-key]")
+				.header("Authorization", "Bearer gpt-key")
 				.body("{\r\n  \"model\": \"gpt-3.5-turbo\",\r\n  \"temperature\": 0,\r\n  \"messages\": [\r\n        {\"role\": \"system\", \"content\": \"Você é um assistente de resumo de solicitações. Você receberá uma solicitação e precisará responder APENAS com um objeto json dessa forma: name: [Texto] desc: [Texto da solicitação reescrita com correções gramaticais e de concordância.] due: [Data no formato yyyy-MM-dd]. Lembrando que due é a data de vencimento e caso não tenha sido informada, criar o objeto sem a data. Considere que hoje é dia "
 						+ hoje + ". É importante ressaltar que sua resposta irá conter somente o objeto Json.\"},\r\n"
 						+ "{\"role\": \"user\", \"content\": \"" + trimmedContent + "\"}\r\n    ]\r\n}\r\n")
@@ -52,6 +60,28 @@ public class GptService {
 				.header("Cookie",
 						"dsc=39cded7d767dc8ddf9aa9e8dd1e47f321d7ec4996c482bbc4c3ae4d4d3f405a7; preAuthProps=s%3A6467b5492de24f974523a7cf%3AisEnterpriseAdmin%3Dfalse.NDgDv0kG7%2FtJoBNPCuolple9%2BgLG1n3bAKipDFBwiCY")
 				.body(systemResponse).asString();
+
+		ObjectMapper objectMapper = new ObjectMapper();
+
+		try {
+			// Converter a string JSON em um objeto Java
+			GptDTO dto = objectMapper.readValue(systemResponse, GptDTO.class);
+
+			String dateString = dto.getDue();
+			DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE;
+			LocalDate localDate = LocalDate.parse(dateString, formatter);
+
+			TaskDTO taskDto = new TaskDTO();
+			taskDto.setName(dto.getName());
+			taskDto.setDescription(dto.getDesc());
+			taskDto.setDeadLine(localDate);
+			taskDto.setDepartmentId((long) 1);
+
+			taskService.insert(taskDto);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 
 		return response.getBody();
 

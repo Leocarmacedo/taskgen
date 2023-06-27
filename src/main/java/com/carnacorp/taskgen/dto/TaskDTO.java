@@ -46,32 +46,64 @@ public class TaskDTO {
 		return id;
 	}
 
+	public void setId(Long id) {
+		this.id = id;
+	}
+
 	public String getName() {
 		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
 	}
 
 	public String getDescription() {
 		return description;
 	}
 
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
 	public Instant getMoment() {
 		return moment;
+	}
+
+	public void setMoment(Instant moment) {
+		this.moment = moment;
 	}
 
 	public LocalDate getDeadLine() {
 		return deadLine;
 	}
 
+	public void setDeadLine(LocalDate deadLine) {
+		this.deadLine = deadLine;
+	}
+
 	public boolean isNeedAuth() {
 		return needAuth;
+	}
+
+	public void setNeedAuth(boolean needAuth) {
+		this.needAuth = needAuth;
 	}
 
 	public boolean isAuth() {
 		return auth;
 	}
 
+	public void setAuth(boolean auth) {
+		this.auth = auth;
+	}
+
 	public Long getDepartmentId() {
 		return departmentId;
+	}
+
+	public void setDepartmentId(Long departmentId) {
+		this.departmentId = departmentId;
 	}
 
 }

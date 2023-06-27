@@ -31,11 +31,12 @@ INSERT INTO tb_user(name, email, password, department_id) VALUES ('Eduarda', 'ed
 
 INSERT INTO tb_role (authority) VALUES ('ROLE_CLIENT');
 INSERT INTO tb_role (authority) VALUES ('ROLE_ADMIN');
+INSERT INTO tb_role (authority) VALUES ('ROLE_LEADER');
 
 INSERT INTO tb_user_role (user_id, role_id) VALUES (1, 1);
 INSERT INTO tb_user_role (user_id, role_id) VALUES (1, 2);
-INSERT INTO tb_user_role (user_id, role_id) VALUES (2, 1);
-INSERT INTO tb_user_role (user_id, role_id) VALUES (3, 1);
+INSERT INTO tb_user_role (user_id, role_id) VALUES (2, 3);
+INSERT INTO tb_user_role (user_id, role_id) VALUES (3, 3);
 INSERT INTO tb_user_role (user_id, role_id) VALUES (4, 1);
 INSERT INTO tb_user_role (user_id, role_id) VALUES (5, 1);
 INSERT INTO tb_user_role (user_id, role_id) VALUES (6, 1);

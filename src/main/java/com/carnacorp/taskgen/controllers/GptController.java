@@ -1,5 +1,9 @@
 package com.carnacorp.taskgen.controllers;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,7 +12,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.carnacorp.taskgen.dto.TrelloCardDTO;
 import com.carnacorp.taskgen.services.GptService;
@@ -33,6 +39,26 @@ public class GptController {
 
 		return systemResponse;
 	}
+
+	@PostMapping("/transcribe")
+	public String transcribeAudio(@RequestParam("file") MultipartFile audioFile, Long departmentId) throws UnirestException {
+		if (audioFile.isEmpty()) {
+			return "O arquivo de áudio não foi fornecido.";
+		}
+
+		// Salvar o arquivo temporariamente em disco
+		Path tempFilePath;
+		try {
+			tempFilePath = Files.createTempFile("audio", ".mp3");
+			Files.copy(audioFile.getInputStream(), tempFilePath, StandardCopyOption.REPLACE_EXISTING);
+			return service.transcribeAudio(tempFilePath, departmentId);
+		} catch (IOException e) {
+			e.printStackTrace();
+			return "Erro ao processar o arquivo de áudio.";
+		}
+		
+    }
+	
 
 	@GetMapping("/")
 	public String index(Model model) {

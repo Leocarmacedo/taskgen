@@ -1,12 +1,24 @@
 package com.carnacorp.taskgen.services;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.FileSystemResource;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.RestTemplate;
 
 import com.carnacorp.taskgen.dto.GptDTO;
 import com.carnacorp.taskgen.dto.TaskDTO;
@@ -17,6 +29,9 @@ import com.mashape.unirest.http.exceptions.UnirestException;
 
 @Service
 public class GptService {
+	private static final String OPENAI_API_URL = "https://api.openai.com/v1/audio/transcriptions";
+	private static final String OPENAI_API_KEY = "api-key";
+	private static final String OPENAI_MODEL = "whisper-1";
 
 	@Autowired
 	private TaskService taskService;
@@ -69,6 +84,51 @@ public class GptService {
 		}
 		return systemResponse;
 
+	}
+
+	public String transcribeAudio(Path tempFilePath, Long depId) throws UnirestException {
+		
+		LocalDate hoje = LocalDate.now();
+		String systemMessage = "Você é um assistente de resumo de solicitações. Você receberá uma solicitação e precisará responder APENAS com um objeto json dessa forma: name: [Texto] desc: [Texto da solicitação reescrita com correções gramaticais e de concordância.] due: [Data no formato yyyy-MM-dd]. Lembrando que due é a data de vencimento e caso não tenha sido informada, criar o objeto sem a data. Considere que hoje é dia "
+				+ hoje + ". É importante ressaltar que sua resposta irá conter somente o objeto Json.";
+
+		RestTemplate restTemplate = new RestTemplate();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+        headers.set("Authorization", "Bearer " + OPENAI_API_KEY);
+
+        MultiValueMap<String, Object> body = new LinkedMultiValueMap<>();
+        body.add("model", OPENAI_MODEL);
+        body.add("file", new FileSystemResource(tempFilePath.toFile()));
+        body.add("response_format", "text");
+
+        HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<>(body, headers);
+
+        ResponseEntity<String> responseEntity = restTemplate.exchange(
+                OPENAI_API_URL,
+                HttpMethod.POST,
+                requestEntity,
+                String.class
+        );
+        System.out.println(responseEntity.getBody());
+
+        // Remover o arquivo temporário
+        try {
+            Files.deleteIfExists(tempFilePath);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        if (responseEntity.getStatusCode().is2xxSuccessful()) {
+        	String result = this.getSystemResponse(systemMessage, responseEntity.getBody());
+        	this.trelloCard(result, depId);
+            return result;
+        } else {
+            // Lida com erros de chamada à API
+            return null;
+        }
+		
 	}
 
 }

@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.carnacorp.taskgen.dto.TrelloCardDTO;
 import com.carnacorp.taskgen.services.GptService;
+import com.carnacorp.taskgen.services.TrelloService;
 import com.mashape.unirest.http.exceptions.UnirestException;
 
 @RestController
@@ -26,6 +27,9 @@ public class GptController {
 
 	@Autowired
 	private GptService service;
+	
+	@Autowired
+	private TrelloService trelloService;
 
 	@PostMapping("/trello")
 	public String insertTrelloCard(@RequestBody TrelloCardDTO trelloDto) throws UnirestException {
@@ -35,7 +39,7 @@ public class GptController {
 
 		String systemResponse = service.getSystemResponse(systemMessage, trelloDto.getContent());
 
-		service.trelloCard(systemResponse, trelloDto.getDepartmentId());
+		trelloService.createTrelloCard(systemResponse, trelloDto.getDepartmentId());
 
 		return systemResponse;
 	}

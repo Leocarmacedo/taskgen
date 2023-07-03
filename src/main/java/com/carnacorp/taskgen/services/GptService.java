@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,22 +22,20 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
-import com.carnacorp.taskgen.dto.GptDTO;
-import com.carnacorp.taskgen.dto.TaskDTO;
+import com.carnacorp.taskgen.services.exceptions.OpenAiApiException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mashape.unirest.http.Unirest;
 import com.mashape.unirest.http.exceptions.UnirestException;
 
 @Service
 public class GptService {
 
-	private static final String OPENAI_API_KEY = "OpenAiApiKey";
+	private static final String OPENAI_API_KEY = "";
 	private static final String OPENAI_MODEL_WHISPER = "whisper-1";
 	private static final String OPENAI_MODEL_CHAT = "gpt-3.5-turbo";
 
 	@Autowired
-	private TaskService taskService;
+	private TrelloService trelloService;
 
 	public String callOpenAPI(String systemMessage, String userMessage) {
 
@@ -65,8 +62,7 @@ public class GptService {
 		try {
 			requestBodyJson = objectMapper.writeValueAsString(requestBody);
 		} catch (JsonProcessingException e) {
-			e.printStackTrace();
-			return null;
+			throw new OpenAiApiException("OpenAiApi request error.");
 		}
 
 		HttpEntity<String> requestEntity = new HttpEntity<>(requestBodyJson, headers);
@@ -78,47 +74,11 @@ public class GptService {
 			if (responseEntity.getStatusCode().is2xxSuccessful()) {
 				return responseEntity.getBody();
 			} else {
-				// Lida com erros de chamada à API
-				return null;
+				throw new OpenAiApiException("OpenAiApi request error.");
 			}
-		} catch (HttpClientErrorException.BadRequest e) {
-			e.printStackTrace();
-			return null;
+		} catch (HttpClientErrorException e) {
+			throw new OpenAiApiException("OpenAiApi request error.");
 		}
-	}
-
-	public void trelloCard(String systemResponse, Long departmentId) throws UnirestException {
-
-		Unirest.setTimeouts(0, 0);
-		Unirest.post(
-				"https://api.trello.com/1/cards?idList=6467b5a996ce87891671c3ea&key=e8573632ce0d5b3d18ceda38bd6c6cd5&token=ATTA1b28f5c12eed7c8c23806256a95c545526fe85201fd9775cc70eb46ba5463eb106876B33")
-				.header("Accept", "application/json").header("Content-Type", "application/json")
-				.header("Cookie",
-						"dsc=39cded7d767dc8ddf9aa9e8dd1e47f321d7ec4996c482bbc4c3ae4d4d3f405a7; preAuthProps=s%3A6467b5492de24f974523a7cf%3AisEnterpriseAdmin%3Dfalse.NDgDv0kG7%2FtJoBNPCuolple9%2BgLG1n3bAKipDFBwiCY")
-				.body(systemResponse).asString();
-
-		ObjectMapper objectMapper = new ObjectMapper();
-
-		TaskDTO taskDto = new TaskDTO();
-		try {
-			// Converter a string JSON em um objeto Java
-			GptDTO dto = objectMapper.readValue(systemResponse, GptDTO.class);
-
-			String dateString = dto.getDue();
-			DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE;
-			LocalDate localDate = LocalDate.parse(dateString, formatter);
-
-			taskDto.setName(dto.getName());
-			taskDto.setDescription(dto.getDesc());
-			taskDto.setDeadLine(localDate);
-			taskDto.setDepartmentId(departmentId);
-
-			taskService.insert(taskDto);
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
 	}
 
 	public String getSystemResponse(String systemMessage, String userMessage) {
@@ -166,11 +126,10 @@ public class GptService {
 
 		if (responseEntity.getStatusCode().is2xxSuccessful()) {
 			String result = this.getSystemResponse(systemMessage, responseEntity.getBody());
-			this.trelloCard(result, depId);
+			trelloService.createTrelloCard(result, depId);
 			return result;
 		} else {
-			// Lida com erros de chamada à API
-			return null;
+			throw new OpenAiApiException("OpenAiApi request error.");
 		}
 
 	}

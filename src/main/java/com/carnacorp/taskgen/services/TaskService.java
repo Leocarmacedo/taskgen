@@ -31,6 +31,13 @@ public class TaskService {
 	private DepartmentRepository departmentRepository;
 
 	@Transactional(readOnly = true)
+	public List<TaskDTO> findByName(String name) {
+
+		List<Task> result = repository.findByName(name);
+		return result.stream().map(x -> new TaskDTO(x)).collect(Collectors.toList());
+	}
+	
+	@Transactional(readOnly = true)
 	public TaskDTO findById(Long id) {
 
 		Task task = repository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Recurso não encontrado"));

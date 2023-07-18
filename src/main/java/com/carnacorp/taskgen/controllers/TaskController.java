@@ -32,6 +32,12 @@ public class TaskController {
 		TaskDTO dto = service.findById(id);
 		return ResponseEntity.ok(dto);
 	}
+	
+	@GetMapping(value = "/name")
+	public ResponseEntity<List<TaskDTO>> findByName(@RequestBody TaskDTO taskDto) {
+		List<TaskDTO> dto = service.findByName(taskDto.getName());
+		return ResponseEntity.ok(dto);
+	}
 
 	@GetMapping
 	public ResponseEntity<List<TaskDTO>> findAll() {

@@ -89,8 +89,30 @@ public class GptService {
 		if (choices.length() > 0) {
 			JSONObject firstChoice = choices.getJSONObject(0);
 			JSONObject message = firstChoice.getJSONObject("message");
+			System.out.println(jsonResponse);
 			systemResponse = message.getString("content");
 		}
+		return systemResponse;
+
+	}
+
+	public String getSystemReturn(String requestEntity) {
+
+		String systemResponse = null;
+		JSONObject jsonResponse = new JSONObject(requestEntity);
+		JSONArray choices = jsonResponse.getJSONArray("choices");
+		if (choices.length() > 0) {
+			JSONObject firstChoice = choices.getJSONObject(0);
+			JSONObject message = firstChoice.getJSONObject("message");
+			
+			if(firstChoice.getString("finish_reason").equals("function_call")) {
+				JSONObject functionCall = message.getJSONObject("function_call");
+				systemResponse = functionCall.getString("arguments");
+			} else {
+				systemResponse = message.getString("content");
+			}
+		}
+
 		return systemResponse;
 
 	}
@@ -132,6 +154,69 @@ public class GptService {
 			throw new OpenAiApiException("OpenAiApi request error.");
 		}
 
+	}
+
+	public String callFunctions(String systemMessage, String userMessage) {
+
+		RestTemplate restTemplate = new RestTemplate();
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		headers.set("Authorization", "Bearer " + OPENAI_API_KEY);
+
+		Map<String, Object> systemObj = new HashMap<>();
+		systemObj.put("role", "system");
+		systemObj.put("content", systemMessage);
+
+		Map<String, Object> userObj = new HashMap<>();
+		userObj.put("role", "user");
+		userObj.put("content", userMessage);
+
+		Map<String, Object> funcObj = new HashMap<>();
+		funcObj.put("name", "find_tasks_by_name");
+		funcObj.put("description", "Find tasks that have said name.");
+
+		Map<String, Object> parameters = new HashMap<>();
+		parameters.put("type", "object");
+
+		Map<String, Object> properties = new HashMap<>();
+		properties.put("name", Map.of("type", "string", "description", " O nome de uma tarefa"));
+		properties.put("description", Map.of("type", "string", "description", " A descrição de uma tarefa"));
+
+		parameters.put("properties", properties);
+		parameters.put("required", new String[] { "name" });
+
+		funcObj.put("parameters", parameters);
+
+		Map<String, Object> requestBody = new HashMap<>();
+		requestBody.put("model", OPENAI_MODEL_CHAT);
+		requestBody.put("messages", new Object[] { systemObj, userObj });
+		requestBody.put("functions", new Object[] { funcObj });
+		requestBody.put("function_call", "auto");
+
+		ObjectMapper objectMapper = new ObjectMapper();
+		String requestBodyJson;
+		try {
+			requestBodyJson = objectMapper.writeValueAsString(requestBody);
+		} catch (JsonProcessingException e) {
+			throw new OpenAiApiException("OpenAiApi request error.");
+		}
+
+		HttpEntity<String> requestEntity = new HttpEntity<>(requestBodyJson, headers);
+
+		try {
+			ResponseEntity<String> responseEntity = restTemplate.exchange("https://api.openai.com/v1/chat/completions",
+					HttpMethod.POST, requestEntity, String.class);
+
+			if (responseEntity.getStatusCode().is2xxSuccessful()) {
+				System.out.println(responseEntity.getBody());
+				return responseEntity.getBody();
+			} else {
+				throw new OpenAiApiException("OpenAiApi request error.");
+			}
+		} catch (HttpClientErrorException e) {
+			throw new OpenAiApiException("OpenAiApi request error.");
+		}
 	}
 
 }

@@ -50,4 +50,6 @@ INSERT INTO tb_user_role (user_id, role_id) VALUES (13, 1);
 INSERT INTO tb_user_role (user_id, role_id) VALUES (14, 1);
 
 INSERT INTO tb_task(name, description, moment, dead_line, need_auth, auth, department_id) VALUES ('Teste', 'Essa é uma task de teste', TIMESTAMP WITH TIME ZONE '2023-06-01T13:00:00Z', TIMESTAMP WITH TIME ZONE '2023-07-06T13:00:00Z', 1, 1, 2);
-
+INSERT INTO tb_task(name, description, moment, dead_line, need_auth, auth, department_id) VALUES ('Teste', 'Essa é a segunda task de teste', TIMESTAMP WITH TIME ZONE '2023-06-01T13:00:00Z', TIMESTAMP WITH TIME ZONE '2023-07-06T13:00:00Z', 1, 1, 2);
+INSERT INTO tb_task(name, description, moment, dead_line, need_auth, auth, department_id) VALUES ('Teste', 'Essa é a terceira task de teste', TIMESTAMP WITH TIME ZONE '2023-06-01T13:00:00Z', TIMESTAMP WITH TIME ZONE '2023-07-06T13:00:00Z', 1, 1, 2);
+INSERT INTO tb_task(name, description, moment, dead_line, need_auth, auth, department_id) VALUES ('Outro', 'Essa é uma task de teste, sem o nome teste', TIMESTAMP WITH TIME ZONE '2023-06-01T13:00:00Z', TIMESTAMP WITH TIME ZONE '2023-07-06T13:00:00Z', 1, 1, 2);

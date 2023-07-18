@@ -27,7 +27,7 @@ public class GptController {
 
 	@Autowired
 	private GptService service;
-	
+
 	@Autowired
 	private TrelloService trelloService;
 
@@ -45,7 +45,8 @@ public class GptController {
 	}
 
 	@PostMapping("/transcribe")
-	public String transcribeAudio(@RequestParam("file") MultipartFile audioFile, Long departmentId) throws UnirestException {
+	public String transcribeAudio(@RequestParam("file") MultipartFile audioFile, Long departmentId)
+			throws UnirestException {
 		if (audioFile.isEmpty()) {
 			return "O arquivo de áudio não foi fornecido.";
 		}
@@ -60,9 +61,18 @@ public class GptController {
 			e.printStackTrace();
 			return "Erro ao processar o arquivo de áudio.";
 		}
-		
-    }
-	
+
+	}
+
+	@PostMapping("/function")
+	public String callFunction(@RequestBody TrelloCardDTO trelloDto) throws UnirestException {
+		LocalDate hoje = LocalDate.now();
+		String systemMessage = "Hoje é dia " + hoje;
+
+		String systemResponse = service.callFunctions(systemMessage, trelloDto.getContent());
+
+		return service.getSystemReturn(systemResponse);
+	}
 
 	@GetMapping("/")
 	public String index(Model model) {

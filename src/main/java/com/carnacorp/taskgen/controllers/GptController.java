@@ -7,6 +7,7 @@ import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.carnacorp.taskgen.dto.TrelloCardDTO;
+import com.carnacorp.taskgen.entities.Response;
 import com.carnacorp.taskgen.services.GptService;
 import com.carnacorp.taskgen.services.TrelloService;
 import com.mashape.unirest.http.exceptions.UnirestException;
@@ -65,13 +67,20 @@ public class GptController {
 	}
 
 	@PostMapping("/function")
-	public String callFunction(@RequestBody TrelloCardDTO trelloDto) throws UnirestException {
+	public ResponseEntity<?> callFunction(@RequestBody TrelloCardDTO trelloDto) throws UnirestException {
 		LocalDate hoje = LocalDate.now();
 		String systemMessage = "Hoje é dia " + hoje;
 
 		String systemResponse = service.callFunctions(systemMessage, trelloDto.getContent());
+		
+		Response response = service.getSystemReturn(systemResponse);
+		
+		if (response.getStringValue() == null) {
+			return ResponseEntity.ok(response.getListObj());
+		} else {
+			return ResponseEntity.ok(response.getStringValue());
+		}
 
-		return service.getSystemReturn(systemResponse);
 	}
 
 	@GetMapping("/")

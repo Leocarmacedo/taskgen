@@ -22,8 +22,10 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import com.carnacorp.taskgen.entities.Response;
 import com.carnacorp.taskgen.services.exceptions.OpenAiApiException;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mashape.unirest.http.exceptions.UnirestException;
 
@@ -36,6 +38,9 @@ public class GptService {
 
 	@Autowired
 	private TrelloService trelloService;
+
+	@Autowired
+	private TaskService taskService;
 
 	public String callOpenAPI(String systemMessage, String userMessage) {
 
@@ -96,24 +101,33 @@ public class GptService {
 
 	}
 
-	public String getSystemReturn(String requestEntity) {
+	public Response getSystemReturn(String requestEntity) {
 
-		String systemResponse = null;
+		Response response = new Response();
 		JSONObject jsonResponse = new JSONObject(requestEntity);
 		JSONArray choices = jsonResponse.getJSONArray("choices");
 		if (choices.length() > 0) {
 			JSONObject firstChoice = choices.getJSONObject(0);
 			JSONObject message = firstChoice.getJSONObject("message");
-			
-			if(firstChoice.getString("finish_reason").equals("function_call")) {
+
+			if (firstChoice.getString("finish_reason").equals("function_call")) {
 				JSONObject functionCall = message.getJSONObject("function_call");
-				systemResponse = functionCall.getString("arguments");
+				try {
+					ObjectMapper objectMapper = new ObjectMapper();
+					JsonNode jsonNode = objectMapper.readTree(functionCall.getString("arguments"));
+					String name = jsonNode.get("name").asText();
+					System.out.println(name);
+					response.setListObj(taskService.findByName(name));
+					return response;
+				} catch (JsonProcessingException e) {
+					e.printStackTrace();
+				}
 			} else {
-				systemResponse = message.getString("content");
+				response.setStringValue(message.getString("content"));
 			}
 		}
 
-		return systemResponse;
+		return response;
 
 	}
 
@@ -174,7 +188,7 @@ public class GptService {
 
 		Map<String, Object> funcObj = new HashMap<>();
 		funcObj.put("name", "find_tasks_by_name");
-		funcObj.put("description", "Find tasks that have said name.");
+		funcObj.put("description", "Econtra tarefas baseado em uma palavra chave como nome.");
 
 		Map<String, Object> parameters = new HashMap<>();
 		parameters.put("type", "object");
